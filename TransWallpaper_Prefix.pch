@@ -1,0 +1,15 @@
+//
+// Prefix header for all source files of the 'TransWallpaper' target in the 'TransWallpaper' project
+//
+
+#ifdef __OBJC__
+    #import <Foundation/Foundation.h>
+    #import <UIKit/UIKit.h>
+
+@protocol TransWallpaperDelegate
+
+-(void)showTrans;
+
+@end
+
+#endif
