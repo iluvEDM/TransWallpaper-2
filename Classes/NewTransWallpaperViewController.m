@@ -105,7 +105,7 @@ static inline UInt32 calcAlpha(UInt32 color,float opa,BOOL opaDir)
 				filename=@"a00";
 				break;
 			case 1:
-				filename=@"a01";
+				filename=@"a0asdf1";
 				break;
 			case 2:
 				filename=@"a02";
@@ -262,14 +262,8 @@ static inline UInt32 calcAlpha(UInt32 color,float opa,BOOL opaDir)
 					i++;
 
 				}
-//                UIImage *testImage ;
-//                testImage = [self printIconRGB];
-//                UIImageView *imageView=[[UIImageView alloc] initWithImage: testImage];
-//                imageView.center=CGPointMake(width/2,height/2);
 
-//                [scrollView addSubview:imageView];
-//                [overlay addSubview:imageView];
-//                [imageView release];
+                
 				[overlay addSubview:scrollView];
 
                 
@@ -294,11 +288,7 @@ static inline UInt32 calcAlpha(UInt32 color,float opa,BOOL opaDir)
 				
 			}
 			
-			// Insert the overlay:
-			self.overlayView=overlay;
-			[self.view addSubview:overlay];
-			
-			[overlay release];
+
 			//	CGRect frame = picker.view.frame;
 			//    frame.origin.y += 30;
 			//    frame.size.height -= 30;
@@ -314,13 +304,18 @@ static inline UInt32 calcAlpha(UInt32 color,float opa,BOOL opaDir)
 
 			for (UIButton *b in buttonArray) {
 				[b addTarget:self action:@selector(iconPressed:) forControlEvents:UIControlEventTouchUpInside];
-				[overlay addSubview:b];
+//				[overlay addSubview:b];
+                [scrollView addSubview:b];
 			}
 			for (UIButton *b in scrollButtonArray) {
 				[b addTarget:self action:@selector(iconPressed:) forControlEvents:UIControlEventTouchUpInside];
 				[scrollView addSubview:b];
 			}
-			
+            // Insert the overlay:
+            self.overlayView=overlay;
+            [self.view addSubview:overlay];
+            
+            [overlay release];
 //			UIButton *button2=[UIButton buttonWithType:UIButtonTypeInfoLight];
 //			button2.tag=0;
 //			[button2 addTarget:self action:@selector(iconPressed:) forControlEvents:UIControlEventTouchUpInside];
@@ -457,7 +452,7 @@ static inline UInt32 calcAlpha(UInt32 color,float opa,BOOL opaDir)
     if (appDelegate.mode)
     {
 
-        for (int i=40;i<iHeight-160;i++)
+        for (int i=40;i<iHeight;i++)
 		
             for (int j=0;j<iWidth;j++)
             {
@@ -477,17 +472,24 @@ static inline UInt32 calcAlpha(UInt32 color,float opa,BOOL opaDir)
                             if (m<35*deviceScale)
                                 break;
                         }
-                        if (l>=35*deviceScale) {
+                        if (l>=35*deviceScale && i<iHeight-160) {
                             UIButton *button=[UIButton buttonWithType:UIButtonTypeCustom];
                             [button setFrame:CGRectMake(p*width+(j/2)-20, (i/2)-20, 60, 60)];
                             [button setTag:10+k];
                             NSLog(@"this icon is : %d", k);
                             [scrollButtonArray addObject:button];
+                        }else if (l>=35*deviceScale && i>iHeight-160 && p == 0){
+                            NSLog(@"find! %d",k);
+                            UIButton *button=[UIButton buttonWithType:UIButtonTypeCustom];
+                            [button setFrame:CGRectMake(j/2-20, i/2 -20, 100, 100)];
+                            [button setTag:10+k];
+                            [buttonArray addObject:button];
+
                         }
                     }
                 }
-                
-                src[j+i*iWidth]=calcAlpha(src[j+i*iWidth], appDelegate.opacity,appDelegate.opacityDirection);
+//                if (i<iHeight-160)
+//                src[j+i*iWidth]=calcAlpha(src[j+i*iWidth], appDelegate.opacity,appDelegate.opacityDirection);
             }
 //        memset(&(src[(height*2-100)*width*2]), 0, 100*width*2*4);
     }
@@ -502,6 +504,8 @@ static inline UInt32 calcAlpha(UInt32 color,float opa,BOOL opaDir)
     
     
     CGContextRelease(tempcontext);
+    CGColorSpaceRelease(colorSpace);
+    free(src);
 
     
 }
@@ -516,87 +520,14 @@ static inline UInt32 calcAlpha(UInt32 color,float opa,BOOL opaDir)
     
     
 //	if (image.size.width==640) {
-		UIImage *dstImage;
-		UInt32 *src=(UInt32*)malloc(height*width*4*4);
-		UInt32 *dst=(UInt32*)malloc(height*width*4);
-    
+    UIImage *dstImage;
+    UInt32 *dst=(UInt32*)malloc(height*width*4);
+
+    [self findIconButtons: image page: p];
+
     CGColorSpaceRef colorSpace=CGColorSpaceCreateDeviceRGB();
-    CGContextRef tempcontext=CGBitmapContextCreate(src,width*2 , height*2, 8, width*2*4, colorSpace,kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big);
-    CGContextDrawImage(tempcontext, CGRectMake(0, 0, image.size.width, image.size.height),[image CGImage]);
-
-    
-    
-		
-//		CGColorSpaceRef colorSpace=CGColorSpaceCreateDeviceRGB();
-//		CGContextRef tempcontext=CGBitmapContextCreate(src, width, height, 8, width*4, colorSpace,kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big);
-//		CGColorSpaceRelease(colorSpace);
-//		CGContextDrawImage(tempcontext, CGRectMake(0, 0, width, height),[image CGImage]);
-    
-
-    
-
-//    deviceScale = 1;
-		if (appDelegate.mode)
-		{
-			memset(src, 0, 20*width*2*4);
-			for (int i=40;i<height*2-160;i++)
-				for (int j=0;j<width*2;j++)
-				{
-					int temp=j+i*width*2;
-					int k=0;
-					int l=0;
-					int m=0;
-					for (;k<IconsLast;k++) {
-						  
-						if (src[temp]==icons[k][0]) {
-
-                            
-							for (l=0;l<35*deviceScale;l++) {
-								for (m=0;m<35*deviceScale;m++) {
-									if (src[ (i+l) * width*2 + j+m] != icons[k][l*35*deviceScale + m]) {
-//                                        int tmp =src[ (i+l) * width + j+m];
-//                                        int tmp2 = icons[k][l*35*deviceScale + m];
-//                                        NSLog(@"diff %x,%x",tmp,tmp2);
-//                                        src[ (i+l) * width + j+m]=0xff507032;
-                                        //                                            NSLog(@"icon[%d][%d]",k,l*35*deviceScale + m);
-                                        
-										break;
-                                    }
-								}
-								
-                                if (m<35*deviceScale)
-									break;
-								
-							}
-							
-							if (l>=35*deviceScale) {
-								UIButton *button=[UIButton buttonWithType:UIButtonTypeCustom];
-								[button setFrame:CGRectMake(p*width+(j/2)-20, (i/2)-20, 60, 60)];
-								[button setTag:10+k];
-                                NSLog(@"this icon is : %d", k);
-								[scrollButtonArray addObject:button];
-							}
-						}
-					}
-					
-					src[j+i*width]=calcAlpha(src[j+i*width], appDelegate.opacity,appDelegate.opacityDirection);
-				}
-			memset(&(src[(height*2-100)*width*2]), 0, 100*width*2*4);
-		}
-		else {
-            NSLog(@"notmode");
-			for (int i=0;i<height-100;i++)
-				for (int j=0;j<width;j++)
-				{
-					src[j+i*width]=calcAlpha(src[j+i*width], appDelegate.opacity,appDelegate.opacityDirection);
-				}
-		}
-    
-    
-        CGContextRelease(tempcontext);
-    
-        CGContextRef tempcontext2=CGBitmapContextCreate(dst, width, height, 8, width*4, colorSpace,kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big);
-        CGContextDrawImage(tempcontext2, CGRectMake(0, 0, width, height),[image CGImage]);
+    CGContextRef tempcontext2=CGBitmapContextCreate(dst, width, height, 8, width*4, colorSpace,kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big);
+    CGContextDrawImage(tempcontext2, CGRectMake(0, 0, width, height),[image CGImage]);
 
     memset(dst, 0, 20*width*4);
     for (int i=20;i<height-100;i++)
@@ -604,18 +535,17 @@ static inline UInt32 calcAlpha(UInt32 color,float opa,BOOL opaDir)
         {
             dst[j+i*width]=calcAlpha(dst[j+i*width], appDelegate.opacity,appDelegate.opacityDirection);
         }
-    memset(&(src[(height-100)*width]), 0, 100*width*4);
+    memset(&(dst[(height-100)*width]), 0, 100*width*4);
     
-		CGImageRef imRef = CGBitmapContextCreateImage(tempcontext2);
-		dstImage=[UIImage imageWithCGImage:imRef];
-		
-        CGColorSpaceRelease(colorSpace);
-		CGContextRelease(tempcontext2);
-		CGImageRelease(imRef);
-		free(src);
-		free(dst);
-		
-		return dstImage;
+    CGImageRef imRef = CGBitmapContextCreateImage(tempcontext2);
+    dstImage=[UIImage imageWithCGImage:imRef];
+    
+    CGColorSpaceRelease(colorSpace);
+    CGContextRelease(tempcontext2);
+    CGImageRelease(imRef);
+    free(dst);
+    
+    return dstImage;
 		
 //	}
 //	else {
@@ -696,175 +626,52 @@ static inline UInt32 calcAlpha(UInt32 color,float opa,BOOL opaDir)
 -(UIImage*)makeBackgroundTransparentImage:(UIImage*)image;
 {
 	
-	NSLog(@"image size = %f",image.scale);
-	NSLog(@"image cgsize = %@",NSStringFromCGSize(image.size));
+    NSLog(@"image size = %f",image.scale);
+    NSLog(@"image cgsize = %@",NSStringFromCGSize(image.size));
     CGRect screenBounds = [[UIScreen mainScreen] bounds];
     int width = screenBounds.size.width;
     int height = screenBounds.size.height;
-//	if (image.size.width==640) {
-        NSLog(@"mbt1");
-		UIImage *dstImage;
-		UInt32 *src=(UInt32*)malloc(height*width*4);
-		UInt32 *dst=(UInt32*)malloc(height*width*4);
-		UInt32 blank;
-		
-		blank=calcAlpha(0, appDelegate.opacity, appDelegate.opacityDirection);
-		
-		CGColorSpaceRef colorSpace=CGColorSpaceCreateDeviceRGB();
-		CGContextRef tempcontext=CGBitmapContextCreate(src, width, height, 8, width*4, colorSpace,kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big);
-		CGColorSpaceRelease(colorSpace);
-		CGContextDrawImage(tempcontext, CGRectMake(0, 0, width, height),[image CGImage]);
-		
-		for (int i=0;i<20;i++)
-			for (int j=0;j<width;j++)
-			{
-				src[j+i*width]=calcAlpha(src[j+i*width], appDelegate.opacity,appDelegate.opacityDirection);
-			}
-		
-        //20 부터 len 길이 만큼 투명화
-		memset(&(src[20*width]), 0, (height-120)*width*4);
-		
+
+    NSLog(@"mbt1");
+    UIImage *dstImage;
+    UInt32 *src=(UInt32*)malloc(height*width*4);
+    UInt32 *dst=(UInt32*)malloc(height*width*4);
+    UInt32 blank;
+    
+    blank=calcAlpha(0, appDelegate.opacity, appDelegate.opacityDirection);
+    
+    CGColorSpaceRef colorSpace=CGColorSpaceCreateDeviceRGB();
+    CGContextRef tempcontext=CGBitmapContextCreate(src, width, height, 8, width*4, colorSpace,kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big);
+    CGColorSpaceRelease(colorSpace);
+    CGContextDrawImage(tempcontext, CGRectMake(0, 0, width, height),[image CGImage]);
+    
+    for (int i=0;i<20;i++)
+        for (int j=0;j<width;j++)
+        {
+            src[j+i*width]=calcAlpha(src[j+i*width], appDelegate.opacity,appDelegate.opacityDirection);
+        }
+    
+    //20 부터 len 길이 만큼 투명화
+    memset(&(src[0*width]), 0, (height-100)*width*4);
+    
 //		memset_pattern4(&(src[(height-120)*width]), &blank ,20*width*4);
-		
-		for (int i=height-80;i<height;i++)
-			for (int j=0;j<width;j++)
-			{
-				int temp=j+i*width;
-				if (i<height) {
-					int k=0;
-					int l=0;
-					int m=0;
-					for (;k<IconsLast;k++) {
-						
-						if (src[temp]==icons[k][0]) {
-							for (l=0;l<35*deviceScale;l++) {
-								for (m=0;m<35*deviceScale;m++) {
-									
-									if (src[ (i+l) * width + j+m] != icons[k][l*35*deviceScale + m]) {
-                                        int tmp =src[ (i+l) * width + j+m];
-                                        int tmp2 = icons[k][l*35*deviceScale + m];
-//                                        NSLog(@"%x,%x",tmp,tmp2);
-//                                            NSLog(@"back icon[%d][%d]",k,l*35*deviceScale + m);
-										break;
-                                    }else{
-                                        int tmp =src[ (i+l) * width + j+m];
-                                        int tmp2 = icons[k][l*35*deviceScale + m];
-//                                        NSLog(@"correct %x,%x",tmp,tmp2);
-//                                        NSLog(@"back correct icon[%d][%d]",k,l*35*deviceScale + m);
-                                        src[ (i+l) * width + j+m]=0xff501432;
-                                    }
-									
-								}
-								
-								if (m<35*deviceScale)
-									break;
-								
-								
-							}
-							
-							if (l>=35*deviceScale) {
-								NSLog(@"find! %d",k);
-								UIButton *button=[UIButton buttonWithType:UIButtonTypeCustom];
-								[button setFrame:CGRectMake(j-20, i -20, 60, 60)];
-								[button setTag:10+k];
-								[buttonArray addObject:button];
-							}								
-						}
-						
-					}
-				}
-				
+    
+    for (int i=height-80;i<height;i++)
+        for (int j=0;j<width;j++)
+        {
 //				src[temp]=calcAlpha(src[temp], appDelegate.opacity,appDelegate.opacityDirection);
-			}
-		
-		CGImageRef imRef = CGBitmapContextCreateImage(tempcontext);
-		dstImage=[UIImage imageWithCGImage:imRef];
-		
-		CGContextRelease(tempcontext);
-		CGImageRelease(imRef);
-		free(src);
-		free(dst);
-		
-		return dstImage;
-		
-//	}
-//	else {
-//        NSLog(@"mbt2");
-//		UIImage *dstImage;
-//		UInt32 *src=(UInt32*)malloc(480*2*320*2*4);
-//		UInt32 *dst=(UInt32*)malloc(480*2*320*2*4);
-//		UInt32 blank;
-//		
-//		blank=calcAlpha(0, appDelegate.opacity, appDelegate.opacityDirection);
-//		
-//		CGColorSpaceRef colorSpace=CGColorSpaceCreateDeviceRGB();
-//		CGContextRef tempcontext=CGBitmapContextCreate(src, 320*2, 480*2, 8, 320*2*4, colorSpace,kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big);
-//		CGColorSpaceRelease(colorSpace);
-//		CGContextDrawImage(tempcontext, CGRectMake(0, 0, 320*2, 480*2),[image CGImage]);
-//		
-//		for (int i=0;i<20*2;i++)
-//			for (int j=0;j<320*2;j++)
-//			{
-//				src[j+i*320*2]=calcAlpha(src[j+i*320*2], appDelegate.opacity,appDelegate.opacityDirection);
-//			}
-//		
-//		memset(&(src[20*2*320*2]), 0, 360*2*320*2*4);
-//		
-//		memset_pattern4(&(src[380*2*320*2]), &blank ,20*2*320*2*4);
-//		
-//		for (int i=400*2;i<480*2;i++)
-//			for (int j=0;j<320*2;j++)
-//			{
-//				int temp=j+i*320*2;
-//				if (i<450*2) {
-//					int k=0;
-//					int l=0;
-//					int m=0;
-//					for (;k<IconsLast;k++) {
-//						
-//						if (src[temp]==icons[k][0]) {
-//							for (l=0;l<35*deviceScale;l++) {
-//								for (m=0;m<35*deviceScale;m++) {
-//									
-//									if (src[ (i+l) * 320*2 + j+m] != icons[k][l*35*deviceScale + m]) {
-//										break;
-//									}
-//									
-//								}
-//								
-//								if (m<35*deviceScale)
-//									break;
-//								
-//							}
-//							
-//							if (l>=35*deviceScale) {
-//								NSLog(@"find! %d",k);
-//								UIButton *button=[UIButton buttonWithType:UIButtonTypeCustom];
-//								[button setFrame:CGRectMake(j/2-20, i /2-20, 60, 60)];
-//								[button setTag:10+k];
-//								[buttonArray addObject:button];
-//							}
-//						}
-//						
-//					}
-//				}
-//				
-//				
-//				src[temp]=calcAlpha(src[temp], appDelegate.opacity,appDelegate.opacityDirection);
-//			}
-		
-//		CGImageRef imRef = CGBitmapContextCreateImage(tempcontext);
-//		dstImage=[UIImage imageWithCGImage:imRef];
-//		dstImage=[UIImage imageWithCGImage:imRef scale:2 orientation:UIImageOrientationUp];
-//		
-//		CGContextRelease(tempcontext);
-//		CGImageRelease(imRef);
-//		free(src);
-//		free(dst);
-//		
-//		return dstImage;
-//	}
-	
+        }
+        
+    CGImageRef imRef = CGBitmapContextCreateImage(tempcontext);
+    dstImage=[UIImage imageWithCGImage:imRef];
+    
+    CGContextRelease(tempcontext);
+    CGImageRelease(imRef);
+    free(src);
+    free(dst);
+    
+    return dstImage;
+            
 }
 
 -(void)iconPressed:(UIButton*)sender {
@@ -873,18 +680,24 @@ static inline UInt32 calcAlpha(UInt32 color,float opa,BOOL opaDir)
 	
 	switch (sender.tag) {
 		case 10:
+            NSLog(@"this is 0");
 			stringURL = @"http://itunes.apple.com/WebObjects/MZStore.woa/wa/viewGrouping?id=25204&mt=8";
 			break;
 		case 11:
+            NSLog(@"this is 1");
 			stringURL = @"http://itunes.apple.com/us/store";
 			break;
 		case 12:
+            NSLog(@"this is 2");
 			stringURL = @"mailto:";
 			break;
 		case 13:
+            NSLog(@"this is 3");
 			stringURL = @"sms:";
 			break;	
 		case 14:
+
+            NSLog(@"this is 4");
 			stringURL = @"http://www.google.com";
 			break;
 		case 15:
